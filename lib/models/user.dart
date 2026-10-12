@@ -8,4 +8,4 @@ class User {
   String getDisplayAge() {
     return age == null ? 'Age not specified' : '$age';
   }
-}
+}//$age cum age este int il face string
