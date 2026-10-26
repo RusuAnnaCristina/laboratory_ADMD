@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 
 class Todo {
-  Todo(this.title, {this.done = false});
+  Todo(this.title, {this.done = false}) : id = _nextId++;
 
+  static int _nextId=0;
+
+  final int id;
   final String title;
   bool done;
 }
@@ -71,15 +74,47 @@ class _TodoState extends State<TodoScreen> {
               itemCount: _items.length,
               itemBuilder: (context, index) {
                 final todo = _items[index];
-                return TodoTile(
-                  key: ObjectKey(todo),
-                  title: todo.title,
-                  done: todo.done,
-                  onChanged: (value) {
+                return Dismissible(
+                  key: ValueKey(todo.id),
+                  direction: DismissDirection.endToStart,
+                  background: Container(color: Colors.red),
+                  onDismissed: (_) {
+                    final removedIndex =
+                        _items.indexWhere((t) => t.id == todo.id);
+                    final removed = _items[removedIndex];
+
                     setState(() {
-                      todo.done = value ?? false;
+                      _items.removeAt(removedIndex);
                     });
+
+                    ScaffoldMessenger.of(context)
+                      ..clearSnackBars()
+                      ..showSnackBar(
+                        SnackBar(
+                          content: Text('Deleted "${removed.title}"'),
+                          action: SnackBarAction(
+                            label: 'Undo',
+                            onPressed: () {
+                              setState(() {
+                                final at = removedIndex > _items.length
+                                    ? _items.length
+                                    : removedIndex;
+                                _items.insert(at, removed);
+                              });
+                            },
+                          ),
+                        ),
+                      );
                   },
+                  child: TodoTile(
+                    title: todo.title,
+                    done: todo.done,
+                    onChanged: (value) {
+                      setState(() {
+                        todo.done = value ?? false;
+                      });
+                    },
+                  ),
                 );
               },
             ),
@@ -93,27 +128,26 @@ class _TodoState extends State<TodoScreen> {
     );
   }
 }
+  class TodoTile extends StatelessWidget {
+    const TodoTile({
+      super.key,
+      required this.title,
+      required this.done,
+      required this.onChanged,
+    });
 
-class TodoTile extends StatelessWidget {
-  const TodoTile({
-    super.key,
-    required this.title,
-    required this.done,
-    required this.onChanged,
-  });
+    final String title;
+    final bool done;
+    final ValueChanged<bool?> onChanged;
 
-  final String title;
-  final bool done;
-  final ValueChanged<bool?> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      child: ListTile(
-        leading: Checkbox(value: done, onChanged: onChanged),
-        title: Text(title),
-      ),
-    );
+    @override
+    Widget build(BuildContext context) {
+      return Card(
+        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        child: ListTile(
+          leading: Checkbox(value: done, onChanged: onChanged),
+          title: Text(title),
+        ),
+      );
+    }
   }
-}
