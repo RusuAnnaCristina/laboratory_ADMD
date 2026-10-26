@@ -5,6 +5,7 @@ import 'models/library_item.dart';
 import 'models/book.dart';
 import 'models/magazine.dart';
 import 'models/library.dart';
+import 'screens/todo_screen.dart';
 
 void main() {
   // --- Task 1 ---
@@ -57,11 +58,10 @@ void main() {
   library.addItem(book2);
   library.addItem(mag1);
 
-  // Testare împrumut
+  
   library.borrowItem(book1, student);
 
-  runApp(MaterialApp(
-    home: Scaffold(
+  final lab2Screen = Scaffold(
       appBar: AppBar(title: const Text('Lab 2')),
       body: ListView(
         children: [
@@ -96,6 +96,6 @@ void main() {
           }),
         ],
       ),
-    ),
-  ));
+    );
+    runApp(const MaterialApp(home: TodoScreen()));
 }
