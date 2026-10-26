@@ -26,6 +26,8 @@ class _TodoState extends State<TodoScreen> {
   final _input = TextEditingController();
   final _scroll = ScrollController();
 
+  String? _filter;
+
   void _add() {
     final text = _input.text.trim();
     if (text.isEmpty) return;
@@ -54,12 +56,17 @@ class _TodoState extends State<TodoScreen> {
 
   @override
   Widget build(BuildContext context) {
+  final filter = _filter;
+    final visible = filter == null
+        ? List<Todo>.of(_items)
+        : _items.where((t) => t.title.contains(filter)).toList();
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Todos')),
+      appBar: AppBar(title: Text('Todos (${_countDone()} done)')),
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.symmetric(horizontal: 12),
             child: TextField(
               controller: _input,
               decoration: const InputDecoration(
@@ -68,12 +75,26 @@ class _TodoState extends State<TodoScreen> {
               ),
             ),
           ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12,12,12,0),
+            child: TextField(
+              decoration: const InputDecoration(
+                labelText: 'Filter',
+                border: OutlineInputBorder(),
+               ),
+               onChanged: (value){
+                  setState(() {
+                    _filter = value.isEmpty ? null : value;
+                  });
+               },
+              ),
+          ),
           Expanded(
             child: ListView.builder(
               controller: _scroll,
-              itemCount: _items.length,
+              itemCount: visible.length,
               itemBuilder: (context, index) {
-                final todo = _items[index];
+                final todo = visible[index];
                 return Dismissible(
                   key: ValueKey(todo.id),
                   direction: DismissDirection.endToStart,
@@ -109,11 +130,7 @@ class _TodoState extends State<TodoScreen> {
                   child: TodoTile(
                     title: todo.title,
                     done: todo.done,
-                    onChanged: (value) {
-                      setState(() {
-                        todo.done = value ?? false;
-                      });
-                    },
+                    onChanged: (_) => _toggle(_items.indexOf(todo)),
                   ),
                 );
               },
@@ -126,6 +143,18 @@ class _TodoState extends State<TodoScreen> {
         child: const Icon(Icons.add),
       ),
     );
+  }
+    void _toggle(int i) {
+    setState(() {
+      _items[i].done = !_items[i].done;
+    });
+  }
+  int _countDone() {
+    var done = 0;
+    for (var i = 0; i < _items.length; i++) {
+      done += _items[i].done ? 1 : 0;
+    }
+    return done;
   }
 }
   class TodoTile extends StatelessWidget {
