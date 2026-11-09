@@ -1,6 +1,5 @@
 
 import 'library_item.dart';
-import 'user.dart';
 
 class Magazine extends LibraryItem {
   final int? issueNumber;

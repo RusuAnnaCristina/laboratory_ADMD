@@ -1,5 +1,4 @@
 import 'library_item.dart';
-import 'user.dart';
 
 class Book extends LibraryItem {
   final int? pageCount;

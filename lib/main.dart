@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
 import 'models/user.dart';
 import 'models/bank_account.dart';
-import 'models/library_item.dart';
 import 'models/book.dart';
 import 'models/magazine.dart';
 import 'models/library.dart';
-import 'screens/todo_screen.dart';
+import 'screens/todo_screen.dart' show TodoScreen;
+import 'models/todo.dart';
 
 void main() {
+  // --- Lab 4 Task I ---
+  const a = Todo(userId: 1, id: 1, title: 'Test', completed: false);
+  const b = Todo(userId: 1, id: 1, title: 'Test', completed: false);
+  debugPrint('a == b: ${a == b}');
+
   // --- Task 1 ---
   final users = [
     User(name: 'Maria', age: 21, email: 'maria@example.com'),
@@ -61,6 +66,7 @@ void main() {
   
   library.borrowItem(book1, student);
 
+  // ignore: unused_local_variable
   final lab2Screen = Scaffold(
       appBar: AppBar(title: const Text('Lab 2')),
       body: ListView(
