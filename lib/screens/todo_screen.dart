@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../api/todo_api.dart';
 
 class Todo {
   Todo(this.title, {this.done = false}) : id = _nextId++;
@@ -27,6 +28,48 @@ class _TodoState extends State<TodoScreen> {
   final _scroll = ScrollController();
 
   String? _filter;
+  
+  // --- Lab 4 Task II ---
+  final _api = TodoApi();
+  final _log = <String>[];
+  bool _loading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _load('/todos');
+  }
+
+  void _addLog(String message) {
+    debugPrint(message);
+    if (!mounted) return;
+    setState(() => _log.add(message));
+  }
+
+  Future<void> _load(String path) async {
+    setState(() {
+      _loading = true;
+      _log.clear();
+    });
+    _addLog('GET $path');
+    try {
+      final todos = await withRetry(
+        () => _api.fetchTodos(path),
+        onLog: _addLog,
+      );
+      if (!mounted) return;
+      setState(() {
+        // turn each API todo into a Lab 3 Todo and add it to the list
+        _items.addAll(todos.map((t) => Todo(t.title, done: t.completed)));
+      });
+      _addLog('Loaded ${todos.length} todos');
+    } catch (_) {
+      _addLog('Request to $path failed after all attempts');
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+  // --- end Lab 4 ---
 
   void _add() {
     final text = _input.text.trim();
@@ -62,9 +105,40 @@ class _TodoState extends State<TodoScreen> {
         : _items.where((t) => t.title.contains(filter)).toList();
 
     return Scaffold(
-      appBar: AppBar(title: Text('Todos (${_countDone()} done)')),
+      appBar: AppBar(
+        title: Text('Todos (${_countDone()} done)'),
+        actions: [
+          IconButton(
+            tooltip: 'Test retry (invalid path)',
+            icon: const Icon(Icons.bug_report),
+            onPressed: _loading ? null : () => _load('/nope'),
+          ),
+        ],
+      ),
       body: Column(
         children: [
+          if (_loading) const LinearProgressIndicator(),
+          if (_log.isNotEmpty)
+            Container(
+              width: double.infinity,
+              margin: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(8),
+              color: Colors.black87,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  for (final line in _log)
+                    Text(
+                      line,
+                      style: const TextStyle(
+                        color: Colors.greenAccent,
+                        fontFamily: 'monospace',
+                        fontSize: 12,
+                      ),
+                    ),
+                ],
+              ),
+          ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: TextField(
