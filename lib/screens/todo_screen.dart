@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../todos/cubit/todo_cubit.dart';
-import '../todos/cubit/todo_state.dart';
+import '../todos/bloc/todo_bloc.dart';
+import '../todos/bloc/todo_event.dart';
+import '../todos/bloc/todo_state.dart';
 
 class TodoScreen extends StatefulWidget {
   const TodoScreen({super.key});
@@ -28,7 +29,7 @@ class _TodoScreenState extends State<TodoScreen> {
     final text = _input.text.trim();
     if (text.isEmpty) return;
 
-    context.read<TodoCubit>().add(text);
+    context.read<TodoBloc>().add(AddTodo(text));
     _input.clear();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -46,10 +47,10 @@ class _TodoScreenState extends State<TodoScreen> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.green.shade200,
-        title: BlocBuilder<TodoCubit, TodoState>(
+        title: BlocBuilder<TodoBloc, TodoState>(
           builder: (context, state) {
             final done = state.todos.where((t) => t.completed).length;
-            return Text('Lab 5 (Cubit) · $done done');
+            return Text('Lab 5 Task II (Bloc) · $done done');
           },
         ),
       ),
@@ -76,7 +77,7 @@ class _TodoScreenState extends State<TodoScreen> {
             ),
           ),
           Expanded(
-            child: BlocBuilder<TodoCubit, TodoState>(
+            child: BlocBuilder<TodoBloc, TodoState>(
               builder: (context, state) {
                 if (state.loading) {
                   return const Center(child: CircularProgressIndicator());
@@ -99,10 +100,10 @@ class _TodoScreenState extends State<TodoScreen> {
                           direction: DismissDirection.endToStart,
                           background: Container(color: Colors.red),
                           onDismissed: (_) {
-                            final cubit = context.read<TodoCubit>();
-                            final at = cubit.state.todos
+                            final bloc = context.read<TodoBloc>();
+                            final at = bloc.state.todos
                                 .indexWhere((t) => t.id == todo.id);
-                            cubit.remove(todo.id);
+                            bloc.add(RemoveTodo(todo.id));
                             ScaffoldMessenger.of(context)
                               ..clearSnackBars()
                               ..showSnackBar(
@@ -110,7 +111,8 @@ class _TodoScreenState extends State<TodoScreen> {
                                   content: Text('Deleted "${todo.title}"'),
                                   action: SnackBarAction(
                                     label: 'Undo',
-                                    onPressed: () => cubit.restore(todo, at),
+                                    onPressed: () =>
+                                        bloc.add(RestoreTodo(todo, at)),
                                   ),
                                 ),
                               );
@@ -119,7 +121,7 @@ class _TodoScreenState extends State<TodoScreen> {
                             title: todo.title,
                             done: todo.completed,
                             onChanged: (_) =>
-                                context.read<TodoCubit>().toggle(todo.id),
+                                context.read<TodoBloc>().add(ToggleTodo(todo.id)),
                           ),
                         );
                       },
