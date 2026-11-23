@@ -4,8 +4,8 @@ import 'models/bank_account.dart';
 import 'models/book.dart';
 import 'models/magazine.dart';
 import 'models/library.dart';
-import 'screens/todo_screen.dart' show TodoScreen;
 import 'models/todo.dart';
+import 'screens/home_screen.dart';
 
 void main() {
   // --- Lab 4 Task I ---
@@ -103,5 +103,5 @@ void main() {
         ],
       ),
     );
-    runApp(const MaterialApp(home: TodoScreen()));
+      runApp(const MaterialApp(home: HomeScreen()));
 }
